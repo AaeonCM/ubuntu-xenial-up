@@ -149,6 +149,20 @@ static const struct upboard_fpga_data upboard_up2_fpga_data = {
 	.ncells = ARRAY_SIZE(upboard_up2_mfd_cells),
 };
 
+/* UP-CREX carrier board for UP Core */
+
+/* same MAXV config as UP1 (proto2 release) */
+#define upboard_upcore_crex_fpga_data upboard_up_fpga_data
+
+/* UP-CRST02 carrier board for UP Core */
+
+/* same MAX10 config as UP2, but same LED cells as UP1 */
+static const struct upboard_fpga_data upboard_upcore_crst02_fpga_data = {
+	.regmapconf = &upboard_up2_regmap_config,
+	.cells = upboard_up_mfd_cells,
+	.ncells = ARRAY_SIZE(upboard_up_mfd_cells),
+};
+
 static int upboard_fpga_read(void *context, unsigned int reg, unsigned int *val)
 {
 	struct upboard_fpga * const fpga = context;
@@ -290,10 +304,11 @@ static int __init upboard_fpga_detect_firmware(struct upboard_fpga *fpga)
 }
 
 static const struct acpi_device_id upboard_fpga_acpi_match[] = {
-	{ "AANT0F00", (kernel_ulong_t) &upboard_up_fpga_data }, /*UP1*/
-	{ "AANT0F01", (kernel_ulong_t) &upboard_up2_fpga_data },/*UP2*/
-	{ "AANT0F02", (kernel_ulong_t) &upboard_up_fpga_data }, /*UPCORE CREX*/
-	{ },
+	{ "AANT0F00", (kernel_ulong_t)&upboard_up_fpga_data },
+	{ "AANT0F01", (kernel_ulong_t)&upboard_up2_fpga_data },
+	{ "AANT0F02", (kernel_ulong_t)&upboard_upcore_crex_fpga_data },
+	{ "AANT0F03", (kernel_ulong_t)&upboard_upcore_crst02_fpga_data },
+	{ }
 };
 MODULE_DEVICE_TABLE(acpi, upboard_fpga_acpi_match);
 

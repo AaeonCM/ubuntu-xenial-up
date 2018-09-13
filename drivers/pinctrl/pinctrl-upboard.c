@@ -535,6 +535,13 @@ static unsigned int upboard_upcore_crex_rpi_mapping[] = {
 	UPBOARD_UPCORE_CREX_BIT_TO_PIN(1, I2S2_TX),
 };
 
+/*
+ * UP Core board + CRST02 carrier board data
+ */
+
+#define upboard_upcore_crst02_pins        upboard_upcore_crex_pins
+#define upboard_upcore_crst02_rpi_mapping upboard_upcore_crex_rpi_mapping
+
 static int upboard_set_mux(struct pinctrl_dev *pctldev, unsigned int function,
 			   unsigned int group)
 {
@@ -651,6 +658,15 @@ static struct pinctrl_desc upboard_upcore_crex_pinctrl_desc = {
 	.pmxops = &upboard_pinmux_ops,
 	.owner = THIS_MODULE,
 };
+
+static struct pinctrl_desc upboard_upcore_crst02_pinctrl_desc = {
+	.pins = upboard_upcore_crst02_pins,
+	.npins = ARRAY_SIZE(upboard_upcore_crst02_pins),
+	.pctlops = &upboard_pinctrl_ops,
+	.pmxops = &upboard_pinmux_ops,
+	.owner = THIS_MODULE,
+};
+
 
 static int upboard_rpi_to_native_gpio(struct gpio_chip *gc, unsigned int gpio)
 {
@@ -793,6 +809,9 @@ static int __init upboard_pinctrl_probe(struct platform_device *pdev)
 	} else if (!strcmp(hid, "AANT0F02")) {
 		pctldesc = &upboard_upcore_crex_pinctrl_desc;
 		rpi_mapping = upboard_upcore_crex_rpi_mapping;
+	} else if (!strcmp(hid, "AANT0F03")) {
+		pctldesc = &upboard_upcore_crst02_pinctrl_desc;
+		rpi_mapping = upboard_upcore_crst02_rpi_mapping;
 	} else
 		return -ENODEV;
 
