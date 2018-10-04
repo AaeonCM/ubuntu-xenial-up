@@ -704,7 +704,7 @@ static int pinctrl_request_if_match(struct pinctrl_dev *pctldev,
  * as part of their gpio_request() semantics, platforms and individual drivers
  * shall *NOT* request GPIO pins to be muxed in.
  */
-int pinctrl_request_gpio(unsigned int gpio)
+int pinctrl_gpio_request(unsigned int gpio)
 {
 	struct pinctrl_dev *pctldev;
 	struct gpio_desc *desc;
@@ -866,18 +866,43 @@ EXPORT_SYMBOL_GPL(pinctrl_gpio_direction_output);
 int pinctrl_gpio_set_config(unsigned gpio, unsigned long config)
 {
 	unsigned long configs[] = { config };
-	struct pinctrl_gpio_range *range;
 	struct pinctrl_dev *pctldev;
-	int ret, pin;
+	struct gpio_desc *desc;
+	int dir;
+	int ret = -EPROBE_DEFER;
 
-	ret = pinctrl_get_device_gpio_range(gpio, &pctldev, &range);
-	if (ret)
-		return ret;
+	desc = gpio_to_desc(gpio);
+	if (!desc) {
+		pr_err("gpio_to_desc(%d) returned NULL", gpio);
+		return -ENODEV;
+	}
 
-	mutex_lock(&pctldev->mutex);
-	pin = gpio_to_pin(range, gpio);
-	ret = pinconf_set_config(pctldev, pin, configs, ARRAY_SIZE(configs));
-	mutex_unlock(&pctldev->mutex);
+	dir = gpiod_get_direction(desc);
+
+	mutex_lock(&pinctrldev_list_mutex);
+
+	/*
+	 * NOTE: this code suppose that if we have multiple pinctrl declared for
+	 * the same gpio those are configured in series.
+	 * In this situation we need to avoid the case were momentarely
+	 * multiple pinctrl try do drive the same line to a different logic value
+	 *
+	 * (1st pinctrl) 1>-----<0 (2nd pinctrl)
+	 *
+	 * To obtain that we need to mind the order in which the multiple pinctrl
+	 * are configured depending of the desired gpio direction (input, output)
+	 */
+	if (dir == 1) {
+		list_for_each_entry(pctldev, &pinctrldev_list, node) {
+			ret = pinconf_set_config(pctldev, gpio, configs, ARRAY_SIZE(configs));
+		}
+	} else {
+		list_for_each_entry_reverse(pctldev, &pinctrldev_list, node) {
+			ret = pinconf_set_config(pctldev, gpio, configs, ARRAY_SIZE(configs));
+		}
+	}
+
+	mutex_unlock(&pinctrldev_list_mutex);
 
 	return ret;
 }
