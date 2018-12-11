@@ -552,6 +552,37 @@ static const struct reg_sequence upboard_upcore_crex_reg_patches[] __initconst =
 		BIT(UPFPGA_UPCORE_CREX_I2S2_CLK) |
 		BIT(UPFPGA_UPCORE_CREX_I2S2_RX)
 	},
+};
+
+static const struct upboard_bios upboard_upcore_crex_bios_info __initconst = {
+	.patches = upboard_upcore_crex_reg_patches,
+	.npatches = ARRAY_SIZE(upboard_upcore_crex_reg_patches),
+};
+
+/*
+ * UP Core board + CRST02 carrier board data
+ */
+
+#define upboard_upcore_crst02_pins        upboard_upcore_crex_pins
+#define upboard_upcore_crst02_rpi_mapping upboard_upcore_crex_rpi_mapping
+
+/*
+ * Init patches applied to the registers until the BIOS sets proper defaults
+ */
+static const struct reg_sequence upboard_upcore_crst02_reg_patches[] __initconst = {
+	// enable I2C voltage-level shifters
+	{ UPFPGA_REG_FUNC_EN0,
+		BIT(UPFPGA_I2C0_EN) |
+		BIT(UPFPGA_I2C1_EN)
+	},
+	// HAT function pins initially set as inputs
+	{ UPFPGA_REG_GPIO_DIR0,
+		BIT(UPFPGA_UPCORE_CREX_SPI2_MISO) |
+		BIT(UPFPGA_UPCORE_CREX_UART1_RXD) |
+		BIT(UPFPGA_UPCORE_CREX_I2S2_FRM) |
+		BIT(UPFPGA_UPCORE_CREX_I2S2_CLK) |
+		BIT(UPFPGA_UPCORE_CREX_I2S2_RX)
+	},
 	// HAT function pins initially enabled (i.e. not hi-Z)
 	{ UPFPGA_REG_GPIO_EN0,
 		BIT(UPFPGA_UPCORE_CREX_SPI2_CS0) |
@@ -571,18 +602,10 @@ static const struct reg_sequence upboard_upcore_crex_reg_patches[] __initconst =
 	},
 };
 
-static const struct upboard_bios upboard_upcore_crex_bios_info __initconst = {
-	.patches = upboard_upcore_crex_reg_patches,
-	.npatches = ARRAY_SIZE(upboard_upcore_crex_reg_patches),
+static const struct upboard_bios upboard_upcore_crst02_bios_info __initconst = {
+	.patches = upboard_upcore_crst02_reg_patches,
+	.npatches = ARRAY_SIZE(upboard_upcore_crst02_reg_patches),
 };
-
-/*
- * UP Core board + CRST02 carrier board data
- */
-
-#define upboard_upcore_crst02_pins        upboard_upcore_crex_pins
-#define upboard_upcore_crst02_rpi_mapping upboard_upcore_crex_rpi_mapping
-#define upboard_upcore_crst02_bios_info   upboard_upcore_crex_bios_info
 
 static int upboard_set_mux(struct pinctrl_dev *pctldev, unsigned int function,
 			   unsigned int group)
