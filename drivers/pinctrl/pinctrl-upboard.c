@@ -813,7 +813,6 @@ static int upboard_gpio_direction_output(struct gpio_chip *gc,
 static struct gpio_chip upboard_gpio_chip = {
 	.label = "Raspberry Pi compatible UP GPIO",
 	.base = 0,
-	.ngpio = ARRAY_SIZE(upboard_up_rpi_mapping),
 	.request = upboard_gpio_request,
 	.free = upboard_gpio_free,
 	.get = upboard_gpio_get,
@@ -855,6 +854,7 @@ static int __init upboard_pinctrl_probe(struct platform_device *pdev)
 	const struct dmi_system_id *system_id;
 	const char *hid;
 	const unsigned int *rpi_mapping;
+	unsigned ngpio;
 	int ret;
 	int i;
 
@@ -868,16 +868,20 @@ static int __init upboard_pinctrl_probe(struct platform_device *pdev)
 	if (!strcmp(hid, "AANT0F00")) {
 		pctldesc = &upboard_up_pinctrl_desc;
 		rpi_mapping = upboard_up_rpi_mapping;
+		ngpio  = ARRAY_SIZE(upboard_up_rpi_mapping);
 	} else if (!strcmp(hid, "AANT0F01")) {
 		pctldesc = &upboard_up2_pinctrl_desc;
 		rpi_mapping = upboard_up2_rpi_mapping;
+		ngpio  = ARRAY_SIZE(upboard_up2_rpi_mapping);
 	} else if (!strcmp(hid, "AANT0F02")) {
 		pctldesc = &upboard_upcore_crex_pinctrl_desc;
 		rpi_mapping = upboard_upcore_crex_rpi_mapping;
+		ngpio  = ARRAY_SIZE(upboard_upcore_crex_rpi_mapping);
 		bios_info = &upboard_upcore_crex_bios_info;
 	} else if (!strcmp(hid, "AANT0F03")) {
 		pctldesc = &upboard_upcore_crst02_pinctrl_desc;
 		rpi_mapping = upboard_upcore_crst02_rpi_mapping;
+		ngpio  = ARRAY_SIZE(upboard_upcore_crst02_rpi_mapping);
 		bios_info = &upboard_upcore_crst02_bios_info;
 	} else
 		return -ENODEV;
@@ -951,6 +955,7 @@ static int __init upboard_pinctrl_probe(struct platform_device *pdev)
 	pctrl->rpi_mapping = rpi_mapping;
 	pctrl->chip = upboard_gpio_chip;
 	pctrl->chip.parent = &pdev->dev;
+	pctrl->chip.ngpio = ngpio;
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &pctrl->chip, &pctrl->chip);
 	if (ret)
