@@ -1,3 +1,9 @@
+linux-hwe (4.15.0-37.40~upboard03) xenial; urgency=medium
+
+  * upboard-hwe: 4.15.0-37.40~upboard03 
+
+ -- Ubilinux Team <ubilinux@emutex.com>  Wed, 12 Dec 2018 15:38:46 +0000
+
 linux-hwe (4.15.0-37.40~upboard02) xenial; urgency=medium
 
   * upboard-hwe: 4.15.0-37.40~upboard02 
