@@ -28,6 +28,8 @@
 #include <linux/regulator/fixed.h>
 #include <linux/regulator/machine.h>
 #include <linux/acpi.h>
+#include <linux/gpio/machine.h>
+#include <linux/gpio.h>
 
 #define UP_BOARD_SPIDEV_BUS_NUM 2
 #define UP_BOARD_SPIDEV_MAX_CLK 25000000
@@ -45,6 +47,14 @@ MODULE_PARM_DESC(spidev0, "register a spidev device on SPI bus 2-0");
 static bool spidev1 = false;
 module_param(spidev1, bool, S_IRUGO);
 MODULE_PARM_DESC(spidev1, "register a spidev device on SPI bus 2-1");
+
+/* Default SPI bus 2-1 chip select on HAT pin 26 */
+#define SPI_CS1_DEFAULT_GPIO (7)
+
+static int spi_cs1_gpio = SPI_CS1_DEFAULT_GPIO;
+module_param(spi_cs1_gpio, int, S_IRUGO);
+MODULE_PARM_DESC(spi_cs1_gpio,
+		"Gpio for SPI bus 2-1 chip select (0 to 27), or -1 to disable");
 
 /* On the UP board, if the ODEn bit is set on the pad configuration
  * it seems to impair some functions on the I/O header such as UART, SPI
@@ -99,6 +109,19 @@ static struct spi_board_info up_spidev_info __initdata = {
 	.modalias	= "spidev",
 	.bus_num	= UP_BOARD_SPIDEV_BUS_NUM,
 	.max_speed_hz   = UP_BOARD_SPIDEV_MAX_CLK,
+};
+
+/* On UP Board there is no native chip select 1 available on SPI Bus 2. This
+ * table will be used to reserve a gpio for chip select 1 using the default
+ * gpio on HAT Pin 26 or the gpio number passed to this module's spi_cs1_gpio
+ * parameter. -1 will disable the reservation of a gpio for chip select.
+ */
+static struct gpiod_lookup_table up_spi_cs_gpiod_table = {
+	.dev_id		= "8086228E:01",
+	.table		= {
+		GPIO_LOOKUP_IDX("up-pinctrl",
+				SPI_CS1_DEFAULT_GPIO, "cs", 1, GPIO_ACTIVE_HIGH),
+	},
 };
 
 static int __init
@@ -169,6 +192,11 @@ up_board_init(void) {
 	}
 
 	board_info = system_id->driver_data;
+
+	if (gpio_is_valid(spi_cs1_gpio)) {
+		up_spi_cs_gpiod_table.table[0].chip_hwnum = spi_cs1_gpio;
+		gpiod_add_lookup_table(&up_spi_cs_gpiod_table);
+	}
 
 	/* Register pin control mappings specific to board version */
 	if (board_info->pinmux_maps) {
