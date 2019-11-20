@@ -46,7 +46,7 @@
 #include "i2c-designware-core.h"
 
 static unsigned int i2c_freq;
-module_param(i2c_freq, uint, 0660);
+module_param(i2c_freq, uint, S_IRUGO);
 MODULE_PARM_DESC(i2c_freq, "I2C clock frequency");
 
 static u32 i2c_dw_get_clk_rate_khz(struct dw_i2c_dev *dev)
@@ -94,6 +94,19 @@ static void dw_i2c_acpi_params(struct platform_device *pdev, char method[],
 	}
 
 	kfree(buf.pointer);
+}
+
+static void dw_i2c_acpi_freq_param(struct platform_device *pdev, u32 *freq)
+{
+	acpi_handle handle = ACPI_HANDLE(&pdev->dev);
+	unsigned long long tmp;
+
+	if (ACPI_FAILURE(acpi_evaluate_integer(handle, "FREQ", NULL, &tmp)))
+		return;
+
+	*freq = (u32)tmp;
+	dev_dbg(&pdev->dev, "%u Hz bus speed specified by 'FREQ' ACPI method\n",
+		*freq);
 }
 
 static int dw_i2c_acpi_configure(struct platform_device *pdev)
@@ -311,6 +324,18 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
 					 &dev->clk_freq);
 	}
 
+	if (has_acpi_companion(&pdev->dev))
+		dw_i2c_acpi_freq_param(pdev, &dev->clk_freq);
+
+	if (i2c_freq) {
+		dev_warn(&pdev->dev,
+			"I2C Frequency override by module parameter:"
+			"old frequency=%u new frequency=%u\n",
+			dev->clk_freq,
+			i2c_freq);
+		dev->clk_freq = i2c_freq;
+	}
+
 	acpi_speed = i2c_acpi_find_bus_speed(&pdev->dev);
 	/*
 	 * Some DSTDs use a non standard speed, round down to the lowest
@@ -335,15 +360,6 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
 
 	if (has_acpi_companion(&pdev->dev))
 		dw_i2c_acpi_configure(pdev);
-
-	if (i2c_freq) {
-		dev_warn(&pdev->dev,
-			"I2C Frequency override by module parameter:"
-			"old frequency=%u new frequency=%u\n",
-			dev->clk_freq,
-			i2c_freq);
-		dev->clk_freq = i2c_freq;
-	}
 
 	/*
 	 * Only standard mode at 100kHz, fast mode at 400kHz,
