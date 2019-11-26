@@ -1,3 +1,10 @@
+linux-hwe (4.15.0-37.40~upboard04) bionic; urgency=medium
+
+  * upboard-hwe: 4.15.0-37.40~upboard04
+  * upboard-hwe: Updated release version for Ubuntu 18.04
+
+ -- Ubilinux Team <ubilinux@emutex.com>  Fri, 08 Feb 2019 13:03:20 +0000
+
 linux-hwe (4.15.0-37.40~upboard03) xenial; urgency=medium
 
   * upboard-hwe: 4.15.0-37.40~upboard03 
