@@ -1,3 +1,12 @@
+linux-hwe (4.15.0-37.40~upboard05) xenial; urgency=medium
+
+  * upboard-hwe: 4.15.0-37.40~upboard05
+  * i2c: designware-platdrv: Use ACPI method FREQ to get i2c speed
+  * upboard: spi: Add gpio chip select for UP Board
+  * spi: pxa2xx: Set dir and value when requesting cs gpio
+
+ -- Ubilinux Team <ubilinux@emutex.com>  Mon, 25 Nov 2019 17:19:38 +0000
+
 linux-hwe (4.15.0-37.40~upboard04) bionic; urgency=medium
 
   * upboard-hwe: 4.15.0-37.40~upboard04
