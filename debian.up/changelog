@@ -1,3 +1,10 @@
+linux-hwe (4.15.0-37.40~upboard06) bionic; urgency=medium
+
+  * upboard-hwe: 4.15.0-37.40~upboard06
+  * re-issue of 4.15.0-37.40~upboard05 for Bionic track
+
+ -- Ubilinux Team <ubilinux@emutex.com>  Wed, 27 Nov 2019 11:15:31 +0000
+
 linux-hwe (4.15.0-37.40~upboard05) xenial; urgency=medium
 
   * upboard-hwe: 4.15.0-37.40~upboard05
