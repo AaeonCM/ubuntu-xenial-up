@@ -567,6 +567,31 @@ static void up_gpio_irq_shutdown(struct irq_data *data)
 	free_irq(pin->soc_gpio.irq, pin);
 }
 
+static int up_irq_chip_set_type_parent(struct irq_data *data, unsigned int type)
+{
+	struct gpio_chip *gc = irq_data_get_irq_chip_data(data);
+	struct up_pctrl *up_pctrl = gc_to_up_pctrl(gc);
+	unsigned offset = irqd_to_hwirq(data);
+	struct up_pin_info *pin = &up_pctrl->board->pins[offset];
+
+	printk("%s: type:%d, gc->label:%s, offset:%d\n",__func__, type, gc->label, offset);
+	pin->irq = irq_find_mapping(up_pctrl->chip.irq.domain, offset);
+	pin->soc_gpio.irq = gpiod_to_irq(pin->soc_gpio.desc);
+	printk("%s: pin->irq:%d, pin->soc_gpio.irq:%d\n",__func__, pin->irq, pin->soc_gpio.irq);
+
+	data = irq_get_irq_data(pin->irq);
+	data->parent_data = irq_get_irq_data(pin->soc_gpio.irq);
+
+
+	if(data->parent_data) {
+		printk("%s: no NULL\n",__func__);
+		return irq_chip_set_type_parent(data, type);
+	} else {
+		printk("%s: NULL\n",__func__);
+		return 0;
+	}
+}
+
 static struct irq_chip up_gpio_irqchip = {
 	.name = "up-gpio",
 	.irq_startup = up_gpio_irq_startup,
@@ -576,7 +601,7 @@ static struct irq_chip up_gpio_irqchip = {
 	.irq_mask = irq_chip_mask_parent,
 	.irq_unmask = irq_chip_unmask_parent,
 	.irq_ack = irq_chip_ack_parent,
-	.irq_set_type = irq_chip_set_type_parent,
+	.irq_set_type = up_irq_chip_set_type_parent,
 };
 
 static int up_gpio_dir_in(struct gpio_chip *gc, unsigned offset)
